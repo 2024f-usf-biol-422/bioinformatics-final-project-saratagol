@@ -1,15 +1,17 @@
 ---
-title: 'Analysis of SARS-CoV-2 Sequencing Data from Experimentally Infected Hamsters and Ferrets'
+title: Analysis of SARS-CoV-2 Sequencing Data from Experimentally Infected Hamsters
+  and Ferrets
 author: "Sara Tagol"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 csl: bioinformatics.csl
 bibliography: references.bib
 params:
-  gff_file_path: "data/metadata/sars_refgenome_annotation.gff"
-  vcf_dir_path: "data/11_vcf_output_for_R"
-  sra_runtable_path: "data/00_sra_runtable/SraRunTable.csv"
-
+  gff_file_path: data/metadata/sars_refgenome_annotation.gff
+  vcf_dir_path: data/11_vcf_output_for_R
+  sra_runtable_path: data/00_sra_runtable/SraRunTable.csv
 ---
 
 ```{r setup, include = FALSE}
@@ -23,20 +25,6 @@ library(readr)
 library(tidyr)
 ```
 
-```{r load-sra-data}
-# Load the SRA data
-sra_data <- read.delim("data/00_sra_runtable/SraRunTable.csv", sep = "\t", header = TRUE)
-
-# Check if the dataset is loaded correctly
-head(sra_data)
-
-```
-
-```{r inspect-sra-data}
-# Inspect the dataset structure and column names
-head(sra_data)
-colnames(sra_data)
-```
 
 # Background and Overview
 
@@ -118,39 +106,42 @@ vcf_with_metadata %>%
   theme_few() # get rid of the grey background
 ```
 
-```{r snp-distribution-genome, fig.cap="Distribution of SNPs across the genome"}
-# create a plot of SNP Distribution Across Genome
+```{r snp-distribution-genome, fig.cap="Distribution of SNPs Across the Genome"}
 vcf_with_metadata %>%
   ggplot(aes(x = pos)) +
-  geom_histogram(binwidth = 1000, fill = "coral", color = "black") +
-  labs(title = "Distribution of SNPs Across the Genome",
-       x = "Genomic Position", y = "Frequency") +
+  geom_histogram(binwidth = 1000, fill = "orange", color = "black") +
+  labs(title = "SNP Distribution Across the Genome",
+       x = "Genomic Position (bp)",
+       y = "Frequency of SNPs") +
   theme_minimal()
 ```
-```{r ferret-hamster-sample-count, fig.cap="Sample count for Ferrets vs. Hamsters"}
-# Group by lab_host and count the samples
-sra_data %>%
+```{r ferret-hamster-sample-count, fig.cap="Sample Count for Ferrets vs Hamsters"}
+vcf_with_metadata %>%
+  filter(!is.na(lab_host) & lab_host %in% c("ferret", "Roborovski dwarf hamster")) %>%
   group_by(lab_host) %>%
   summarize(sample_count = n()) %>%
-  ggplot(aes(x = reorder(lab_host, -sample_count), y = sample_count, fill = lab_host)) +
+  ggplot(aes(x = lab_host, y = sample_count, fill = lab_host)) +
   geom_bar(stat = "identity") +
-  labs(title = "Sample Count for Ferrets vs. Hamsters",
-       x = "Lab Host", y = "Number of Samples") +
-  scale_fill_manual(values = c("ferret" = "purple", "hamster" = "orange")) +
+  labs(title = "Sample Count for Ferrets vs Hamsters",
+       x = "Lab Host",
+       y = "Number of Samples") +
+  scale_fill_manual(values = c("ferret" = "purple", "Roborovski dwarf hamster" = "orange")) +
   theme_minimal()
 ```
 
-```{r snp-counts-sample, fig.cap="SNP counts per sample"}
-# create a plot of SNP counts per sample
+```{r snp-counts-sample, fig.cap="SNP Counts Per Sample"}
 vcf_with_metadata %>%
   group_by(sample) %>%
   summarize(snp_count = n()) %>%
-  ggplot(aes(x = sample, y = snp_count)) +
+  ggplot(aes(x = reorder(sample, snp_count), y = snp_count)) +
   geom_bar(stat = "identity", fill = "purple") +
-  labs(title = "SNP Counts per Sample",
-       x = "Sample", y = "Number of SNPs") +
+  labs(title = "SNP Counts Per Sample",
+       x = "Sample ID",
+       y = "Number of SNPs") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_blank(), # Hides overlapping labels
+        axis.ticks.x = element_blank()) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
 ```
 
 ```{r gene-length-distribution, fig.cap="Gene length distribution in SARS-CoV-2 genome"}

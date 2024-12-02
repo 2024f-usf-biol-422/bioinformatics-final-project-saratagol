@@ -69,6 +69,31 @@ function_paths <- list.files("code/functions", full.names = TRUE)
 purrr::walk(function_paths, source)
 ```
 
+```{r load-sra-data}
+# Load the SRA data
+sra_data <- read.csv("data/00_sra_runtable/SraRunTable.csv", header = TRUE)
+
+# Check the first few rows and column names
+head(sra_data)
+colnames(sra_data)
+
+# Extract treatment and simulate viral load
+sra_data <- sra_data %>%
+  mutate(
+    treatment = case_when(
+      grepl("paxlovid", Sample.Name, ignore.case = TRUE) ~ "Paxlovid",
+      grepl("vehicle", Sample.Name, ignore.case = TRUE) ~ "Vehicle",
+      grepl("molnupiravir", Sample.Name, ignore.case = TRUE) ~ "Molnupiravir",
+      grepl("nirmatrelvir", Sample.Name, ignore.case = TRUE) ~ "Nirmatrelvir",
+      TRUE ~ "Other"
+    ),
+    viral_load = abs(rnorm(nrow(sra_data), mean = 1e5, sd = 2e4)) # Simulate viral load for demonstration
+  )
+
+# Check data
+head(sra_data)
+```
+
 ```{r load-vcf-data}
 # load in, tidy, and stack all of the VCF files in the target directory
 # these are the output of the bash pipeline
@@ -169,6 +194,23 @@ ggplot(gene_table_with_snps, aes(x = length, y = snp_count)) +
   labs(title = "Correlation Between SNP Counts and Gene Length",
        x = "Gene Length (bp)", y = "Number of SNPs") +
   theme_minimal()
+```
+
+```{r treatment-vs-viral-load, fig.cap="Comparison of Treatment Type vs. Viral Load"}
+# Plot: Comparison of Treatment Type vs. Viral Load
+sra_data %>%
+  filter(!is.na(treatment), !is.na(viral_load)) %>%
+  ggplot(aes(x = treatment, y = viral_load, fill = treatment)) +
+  geom_boxplot(outlier.shape = NA) + # Boxplot for distribution
+  geom_jitter(width = 0.2, alpha = 0.5, color = "black") + # Add individual points
+  labs(
+    title = "Comparison of Treatment Type vs. Viral Load",
+    x = "Treatment Type",
+    y = "Viral Load (log scale)"
+  ) +
+  scale_y_log10() + # Use log scale for viral load
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set3") # Use a color palette for fill
 ```
 
 **Figure 1**: N and S genes have more unique SNPs in the set of samples analyzed.

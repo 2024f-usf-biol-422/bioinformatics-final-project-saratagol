@@ -1,6 +1,6 @@
 ---
-title: 'Your Title Here'
-author: "Don Francisco"
+title: 'Analysis of SARS-CoV-2 Sequencing Data from Experimentally Infected Hamsters and Ferrets'
+author: "Sara Tagol"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 csl: bioinformatics.csl
@@ -8,7 +8,8 @@ bibliography: references.bib
 params:
   gff_file_path: "data/metadata/sars_refgenome_annotation.gff"
   vcf_dir_path: "data/11_vcf_output_for_R"
-  sra_runtable_path: "data/00_sra_runtable/SraRunTable_PRJNA656695_short_example.txt"
+  sra_runtable_path: "data/00_sra_runtable/SraRunTable.csv"
+
 ---
 
 ```{r setup, include = FALSE}
@@ -16,11 +17,36 @@ knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE,
                       message = FALSE,
                       error = FALSE)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(tidyr)
+```
+
+```{r load-sra-data}
+# Load the SRA data
+sra_data <- read.delim("data/00_sra_runtable/SraRunTable.csv", sep = "\t", header = TRUE)
+
+# Check if the dataset is loaded correctly
+head(sra_data)
+
+```
+
+```{r inspect-sra-data}
+# Inspect the dataset structure and column names
+head(sra_data)
+colnames(sra_data)
 ```
 
 # Background and Overview
 
 This is a report on SARS-CoV-2, including some variant analysis [@koyama2020variant].
+This report focuses on the analysis of SARS-CoV-2 sequencing data alongside tabular data, including a variant analysis and data summary. The primary goal is to investigate patterns in viral variants and correlate them with metadata such as geographic location.
+
+Key objectives include:
+1. Summarizing sequencing quality.
+2. Identifying frequent variants in the VCF files.
+3. Correlating variant frequency with metadata from the `SraRunTable`.
 
 # Methods
 
@@ -34,7 +60,13 @@ You may also want to use any of a range of different COVID data packages and dat
 * https://covidtracking.com/data/api
   * `readr::read_csv("https://api.covidtracking.com/v1/states/daily.csv")`
 
-## Subsections are ok too
+## Sequencing Data Analysis
+Sequencing data were processed using `bwa` for alignment and `bcftools` for variant calling. The resulting VCF files were analyzed for variant frequencies and annotated with metadata.
+
+## Tabular Data Analysis
+The `SraRunTable.csv` was analyzed in R to summarize sample metadata and investigate patterns by region and sequencing platform.
+
+All analyses were conducted using R scripts integrated into this RMarkdown file, ensuring reproducibility.
 
 # Results and Discussion
 
@@ -70,7 +102,7 @@ vcf_with_metadata <-
 
 # Figures
 
-```{r sample-plot}
+```{r unique SNP locations, fig.cap="Unique SNP Locations"}
 # create a plot of unique SNP locations within each gene across all samples
 vcf_with_metadata %>%
   filter(!is.na(gene)) %>% # get rid of SNPs not in gene regions
@@ -86,12 +118,75 @@ vcf_with_metadata %>%
   theme_few() # get rid of the grey background
 ```
 
+```{r snp-distribution-genome, fig.cap="Distribution of SNPs across the genome"}
+# create a plot of SNP Distribution Across Genome
+vcf_with_metadata %>%
+  ggplot(aes(x = pos)) +
+  geom_histogram(binwidth = 1000, fill = "coral", color = "black") +
+  labs(title = "Distribution of SNPs Across the Genome",
+       x = "Genomic Position", y = "Frequency") +
+  theme_minimal()
+```
+```{r ferret-hamster-sample-count, fig.cap="Sample count for Ferrets vs. Hamsters"}
+# Group by lab_host and count the samples
+sra_data %>%
+  group_by(lab_host) %>%
+  summarize(sample_count = n()) %>%
+  ggplot(aes(x = reorder(lab_host, -sample_count), y = sample_count, fill = lab_host)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Sample Count for Ferrets vs. Hamsters",
+       x = "Lab Host", y = "Number of Samples") +
+  scale_fill_manual(values = c("ferret" = "purple", "hamster" = "orange")) +
+  theme_minimal()
+```
+
+```{r snp-counts-sample, fig.cap="SNP counts per sample"}
+# create a plot of SNP counts per sample
+vcf_with_metadata %>%
+  group_by(sample) %>%
+  summarize(snp_count = n()) %>%
+  ggplot(aes(x = sample, y = snp_count)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  labs(title = "SNP Counts per Sample",
+       x = "Sample", y = "Number of SNPs") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r gene-length-distribution, fig.cap="Gene length distribution in SARS-CoV-2 genome"}
+# create a plot of gene length distribution 
+gene_table %>%
+  mutate(length = end - start) %>%
+  ggplot(aes(x = length)) +
+  geom_histogram(binwidth = 100, fill = "darkblue", color = "white") +
+  labs(title = "Gene Length Distribution",
+       x = "Gene Length (bp)", y = "Frequency") +
+  theme_minimal()
+```
+
+```{r snp-gene-length-correlation, fig.cap="Correlation between SNP counts and gene length"}
+# create a plot of correlation Between SNP Counts and Gene Length
+gene_table_with_snps <- vcf_with_metadata %>%
+  filter(!is.na(gene)) %>%
+  group_by(gene) %>%
+  summarize(snp_count = n()) %>%
+  left_join(gene_table, by = c("gene" = "gene_name")) %>%
+  mutate(length = end - start)
+
+ggplot(gene_table_with_snps, aes(x = length, y = snp_count)) +
+  geom_point(color = "red", size = 3) +
+  labs(title = "Correlation Between SNP Counts and Gene Length",
+       x = "Gene Length (bp)", y = "Number of SNPs") +
+  theme_minimal()
+```
+
 **Figure 1**: N and S genes have more unique SNPs in the set of samples analyzed.
+
 
 # Tables
 
-```{r example-table}
-# An example table to show the length of each gene using its start and end
+```{r gene-length-table}
+# A table to show the length of each gene using its start and end
 gene_table %>%
   mutate(length = end - start) %>%
   select(gene_name, start, end, length) %>%
@@ -101,6 +196,24 @@ gene_table %>%
                              "Length"))
 ```
 
+```{r gene-summary-table}
+# A table with a summary of Gene Information
+gene_table %>%
+  mutate(length = end - start) %>%
+  select(gene_name, start, end, length) %>%
+  knitr::kable(col.names = c("Gene Name", "Start", "End", "Length (bp)"))
+```
+
+```{r top-snps-genes-table}
+# A table with top 5 Genes with Highest SNP Counts
+vcf_with_metadata %>%
+  filter(!is.na(gene)) %>%
+  group_by(gene) %>%
+  summarize(snp_count = n()) %>%
+  arrange(desc(snp_count)) %>%
+  head(5) %>%
+  knitr::kable(col.names = c("Gene Name", "SNP Count"))
+```
 **Table 1**: Gene names, locations, and lengths in the SARS-CoV-2 genome. Higher SNP counts in the S and N genes may be related to the larger size of these genes.
 
 # Sources Cited

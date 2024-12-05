@@ -29,7 +29,7 @@ library(tidyr)
 # Background and Overview
 
 This is a report on SARS-CoV-2, including some variant analysis [@koyama2020variant].
-This report focuses on the analysis of SARS-CoV-2 sequencing data alongside tabular data, including a variant analysis and data summary. The primary goal is to investigate patterns in viral variants and correlate them with metadata such as geographic location.
+This report focuses on the analysis of SARS-CoV-2 sequencing data alongside tabular data, including a variant analysis and data summary. The primary goal is to investigate patterns in viral variants and correlate them with metadata such as species. The goal of this project was to observe differences in SNPs in two different organisms and to break down SNP data by gene. 
 
 Key objectives include:
 1. Summarizing sequencing quality.
@@ -58,7 +58,7 @@ All analyses were conducted using R scripts integrated into this RMarkdown file,
 
 # Results and Discussion
 
-```{r load-packages-and-functions}
+```{r load-packages-and-functions, include=FALSE}
 library("vcfR")
 library("ggplot2")
 library("dplyr")
@@ -69,7 +69,7 @@ function_paths <- list.files("code/functions", full.names = TRUE)
 purrr::walk(function_paths, source)
 ```
 
-```{r load-sra-data}
+```{r load-sra-data, include=FALSE}
 # Load the SRA data
 sra_data <- read.csv("data/00_sra_runtable/SraRunTable.csv", header = TRUE)
 
@@ -93,7 +93,7 @@ sra_data <- sra_data %>%
 head(sra_data)
 ```
 
-```{r load-vcf-data}
+```{r load-vcf-data, include=FALSE}
 # load in, tidy, and stack all of the VCF files in the target directory
 # these are the output of the bash pipeline
 stacked_vcfs <- parse_tidy_and_stack_vcfs(vcf_dir_path = params$vcf_dir_path)
@@ -129,6 +129,8 @@ vcf_with_metadata %>%
        x = "Gene Name") +
   theme_few() # get rid of the grey background
 ```
+**Figure 1**: ORF1ab and S genes have more unique SNPs in the set of samples analyzed.
+
 
 ```{r snp-distribution-genome, fig.cap="Distribution of SNPs Across the Genome"}
 vcf_with_metadata %>%
@@ -139,6 +141,8 @@ vcf_with_metadata %>%
        y = "Frequency of SNPs") +
   theme_minimal()
 ```
+**Figure 2**: Most SNPs occur between 20,000 and 25,000 bp. 
+
 ```{r ferret-hamster-sample-count, fig.cap="Sample Count for Ferrets vs Hamsters"}
 vcf_with_metadata %>%
   filter(!is.na(lab_host) & lab_host %in% c("ferret", "Roborovski dwarf hamster")) %>%
@@ -154,6 +158,7 @@ vcf_with_metadata %>%
   scale_fill_manual(values = c("ferret" = "purple", "Roborovski dwarf hamster" = "orange")) +
   theme_minimal()
 ```
+**Figure 3**: Roborovski dwarf hamster has more SNPs than ferret. 
 
 ```{r snp-counts-sample, fig.cap="SNP Counts Per Sample"}
 vcf_with_metadata %>%
@@ -169,6 +174,8 @@ vcf_with_metadata %>%
         axis.ticks.x = element_blank()) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
 ```
+**Figure 4**: There is a variety in number of SNPs per sample. 
+
 
 ```{r gene-length-distribution, fig.cap="Gene length distribution in SARS-CoV-2 genome"}
 # create a plot of gene length distribution 
@@ -180,6 +187,7 @@ gene_table %>%
        x = "Gene Length (bp)", y = "Frequency") +
   theme_minimal()
 ```
+**Figure 5**: ORF1ab and S genes are much larger in legth than the other genes. 
 
 ```{r snp-gene-length-correlation, fig.cap="Correlation between SNP counts and gene length"}
 # create a plot of correlation Between SNP Counts and Gene Length
@@ -196,45 +204,9 @@ ggplot(gene_table_with_snps, aes(x = length, y = snp_count)) +
        x = "Gene Length (bp)", y = "Number of SNPs") +
   theme_minimal()
 ```
-
-```{r treatment-vs-viral-load, fig.cap="Comparison of Treatment Type vs. Viral Load"}
-# Plot: Comparison of Treatment Type vs. Viral Load
-sra_data %>%
-  group_by(lab_host) %>%
-  summarize(sample_count = n())
-unique_count <- sra_data %>%
-  distinct() %>%
-  group_by(lab_host) %>%
-  summarize(sample_count = n())
-  filter(!is.na(treatment), !is.na(viral_load)) %>%
-  ggplot(aes(x = treatment, y = viral_load, fill = treatment)) +
-  geom_boxplot(outlier.shape = NA) + # Boxplot for distribution
-  geom_jitter(width = 0.2, alpha = 0.5, color = "black") + # Add individual points
-  labs(
-    title = "Comparison of Treatment Type vs. Viral Load",
-    x = "Treatment Type",
-    y = "Viral Load (log scale)"
-  ) +
-  scale_y_log10() + # Use log scale for viral load
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set3") # Use a color palette for fill
-```
-
-**Figure 1**: N and S genes have more unique SNPs in the set of samples analyzed.
-
+**Figure 6**: Another way to demonstrate ORF1ab and S genes are larger genes and therfore are more likely to have SNPs. 
 
 # Tables
-
-```{r gene-length-table}
-# A table to show the length of each gene using its start and end
-gene_table %>%
-  mutate(length = end - start) %>%
-  select(gene_name, start, end, length) %>%
-  knitr::kable(col.names = c("Gene Name",
-                             "Start",
-                             "End",
-                             "Length"))
-```
 
 ```{r gene-summary-table}
 # A table with a summary of Gene Information
@@ -243,7 +215,7 @@ gene_table %>%
   select(gene_name, start, end, length) %>%
   knitr::kable(col.names = c("Gene Name", "Start", "End", "Length (bp)"))
 ```
-
+**Table 1**: Gene names, locations, and lengths in the SARS-CoV-2 genome.
 ```{r top-snps-genes-table}
 # A table with top 5 Genes with Highest SNP Counts
 vcf_with_metadata %>%
@@ -254,6 +226,5 @@ vcf_with_metadata %>%
   head(5) %>%
   knitr::kable(col.names = c("Gene Name", "SNP Count"))
 ```
-**Table 1**: Gene names, locations, and lengths in the SARS-CoV-2 genome. Higher SNP counts in the S and N genes may be related to the larger size of these genes.
-
+**Table 2**: Gene names and SNP counts. Higher SNP counts in the S and ORF1ab genes are possibly related to the larger size of these genes.
 # Sources Cited

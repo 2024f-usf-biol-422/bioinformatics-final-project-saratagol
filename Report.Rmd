@@ -141,18 +141,16 @@ vcf_with_metadata %>%
 ```
 ```{r ferret-hamster-sample-count, fig.cap="Sample Count for Ferrets vs Hamsters"}
 vcf_with_metadata %>%
-  filter(!is.na(lab_host)) %>% # & lab_host %in% c("ferret", "Roborovski dwarf hamster")) %>%
-  
-  group_by(sample, lab_host) %>%
-  tally() %>%
+  filter(!is.na(lab_host) & lab_host %in% c("ferret", "Roborovski dwarf hamster")) %>%
   group_by(lab_host) %>%
-  tally()
-  summarize(sample_count = n()) %>%
-  ggplot(aes(x = lab_host, y = sample_count, fill = lab_host)) +
+  summarize(snp_count = n()) %>%
+  ggplot(aes(x = lab_host, y = snp_count, fill = lab_host)) +
   geom_bar(stat = "identity") +
-  labs(title = "Sample Count for Ferrets vs Hamsters",
-       x = "Lab Host",
-       y = "Number of Samples") +
+  labs(
+    title = "SNP Count for Ferrets vs Hamsters",
+    x = "Lab Host",
+    y = "Number of SNPs"
+  ) +
   scale_fill_manual(values = c("ferret" = "purple", "Roborovski dwarf hamster" = "orange")) +
   theme_minimal()
 ```

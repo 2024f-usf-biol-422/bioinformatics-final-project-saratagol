@@ -167,7 +167,7 @@ vcf_with_metadata %>%
   filter(
     !is.na(lab_host) &
       lab_host %in% c("ferret", "Roborovski dwarf hamster")
-    ) %>%
+  ) %>%
   group_by(lab_host) %>%
   summarize(snp_count = n()) %>%
   ggplot(aes(x = lab_host, y = snp_count, fill = lab_host)) +
@@ -179,7 +179,7 @@ vcf_with_metadata %>%
   ) +
   scale_fill_manual(
     values = c(
-    "ferret" = "purple",
+      "ferret" = "purple",
     "Roborovski dwarf hamster" = "orange"
   )
 ) +

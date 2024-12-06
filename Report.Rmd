@@ -180,7 +180,7 @@ vcf_with_metadata %>%
   scale_fill_manual(
     values = c(
       "ferret" = "purple",
-    "Roborovski dwarf hamster" = "orange"
+      "Roborovski dwarf hamster" = "orange"
   )
 ) +
   theme_minimal()

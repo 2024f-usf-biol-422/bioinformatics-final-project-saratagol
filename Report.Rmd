@@ -40,29 +40,42 @@ The primary findings revealed that SNP counts varied a lot across genes, with th
 This project combined sequence processing pipelines with statistical analysis to create an overview of SNP dynamics in the SARS-CoV-2 genome in non-model organisms. 
 
 # Methods
-##Data Acquisition and Preprocessing
+### Data Acquisition and Preprocessing
 To investigate the genomic features of SARS-CoV-2, raw sequencing data was acquired from the following publicly available dataset: “SARS-CoV-2 Sequencing from experimentally infected hamsters and ferrets”(PRJNA894555), including VCF files for variant analysis. The metadata and sequence files were retrieved from the NCBI Sequence Read Archive (SRA) using the fasterq-dump command in the SRA toolkit. The downloaded sequence reads were quality-checked using FastQC and trimmed for adapter sequences using Trimmomatic (Bolger et al., 2014).
 
-##Sequence Alignment and Variant Calling
+### Sequence Alignment and Variant Calling
 The trimmed reads were aligned to the SARS-CoV-2 reference genome (GenBank ID: NC_045512.2) using bwa mem (Li and Durbin, 2009). The resulting SAM files were converted to BAM format, sorted, and indexed using samtools (Li et al., 2009). Variant calling was performed with bcftools mpileup and bcftools call to generate VCF files containing SNP information. Default parameters were used unless otherwise noted. Stringent filtering criteria were applied to ensure the reliability of the identified variants.
 
-##Annotation and Data Cleaning
+### Annotation and Data Cleaning
 The VCF files were parsed and annotated using custom bash scripts and vcfR in R (Knaus and Grünwald, 2017). Additional annotations, such as gene names, positions, and functional consequences, were added using the SARS-CoV-2 genome annotation file in GFF format. The annotated data were saved in tabular format for downstream analyses.
 
-##Exploratory Data Analysis in R
+### Exploratory Data Analysis in R
 Cleaned SNP data and associated metadata were analyzed in R. Key analyses included:
 SNP Frequency Analysis: SNP counts per gene and per sample were summarized using dplyr and visualized with ggplot2. Distributions of SNP frequencies were explored to identify patterns across genes and samples.
 Gene Length Correlation: Gene lengths were calculated from the genomic coordinates provided in the annotation file. SNP counts were correlated with gene lengths using scatterplots and Pearson correlation coefficients.
 Visualization: Histograms, bar plots, and scatterplots were generated to highlight key findings. Custom color schemes and themes were applied using ggthemes.
 
-##Pipeline Validation
+### Pipeline Validation
 All bash scripts used in the preprocessing and alignment steps were rigorously tested using shellcheck to ensure robustness and accuracy. All R scripts and RMarkdown files were run through lintr to verify they were following best coding practices. The RMarkdown report successfully knitted into HTML format, providing a comprehensive overview of the analyses performed.
 
-##Reproducibility
+### Reproducibility
 The project repository contains all scripts used in this analysis, with detailed comments explaining each step. Each script is appropriately named and organized within directories to facilitate reproducibility. Instructions for running the pipeline are provided in the README file included in the repository.
 
 
 # Results and Discussion
+
+### Results
+The sequencing data analysis started with raw sequence files downloaded using the SRA toolkit. FastQC was used to ensure quality, and while most sequences met the required quality standards, there were a few exceptions where trimming was necessary to improve the data. Trimmomatic was applied, which addressed low-quality bases and adapter contamination effectively. Post-trimming, the sequences were rechecked, and overall quality scores improved significantly, suggesting the data was ready for downstream analysis.
+Variant analysis using the VCF files revealed distinct patterns of SNP distribution across the genome of SARS-CoV-2. Hamsters and ferrets demonstrated differences in SNP counts, particularly within the ORF1ab and spike (S) genes. These genes showed the highest SNP frequencies, aligning with findings in previous studies that identified these regions as hotspots for mutations in SARS-CoV-2 (Andersen et al., 2020).
+To explore these variations further, a custom R script was used to correlate SNP counts with gene length. Unsurprisingly, larger genes, like ORF1ab, harbored more SNPs. This made sense biologically since a larger target area naturally allows for a higher chance of mutations. The smaller accessory genes showed fewer SNPs, as anticipated. The use of ggplot2 provided clear and interpretable visualizations that supported these observations.
+
+
+### Discussion
+The results align with the broader understanding of SARS-CoV-2's mutation landscape. The high number of SNPs in ORF1ab and S genes underscores their role in viral fitness and adaptability, which has been highlighted in the literature. ORF1ab, being a large polyprotein, is vital for replication, while the S gene is key to receptor binding and entry into host cells (Hoffmann et al., 2020).
+Ferrets and hamsters were useful models for this analysis because of their differential responses to SARS-CoV-2. While hamsters show robust viral replication, ferrets often serve as models for upper respiratory infections. The observed SNP patterns may also hint at host-specific pressures influencing viral evolution.
+While the findings are promising, it's essential to acknowledge the study's limitations. For instance, the dataset size was relatively small, and additional sequencing data from other host species could provide a more comprehensive understanding. Additionally, functional studies would be necessary to determine if these SNPs have any phenotypic effects.
+Overall, this study demonstrated the power of combining bioinformatics tools and visualization techniques to investigate viral genomics. It reinforced the importance of ORF1ab and S genes in the evolutionary dynamics of SARS-CoV-2, providing a foundation for future studies.
+
 
 ```{r load-packages-and-functions, include=FALSE}
 library("vcfR")

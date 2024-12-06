@@ -29,9 +29,14 @@ library(tidyr)
 # Background and Overview
 
 This is a report on SARS-CoV-2, including some variant analysis [@koyama2020variant].The primary goals of this analysis were to assess the genomic features and single nucleotide polymorphism (SNP) distribution within the SARS-CoV-2 genome using a combination of biostatistical tools. By using bash script for sequence processing and R for data analysis and visualization, this study aimed to identify patterns in SNP distribution and frequency, as well as their association with gene lengths across the viral genome in two non-model organisms. 
+
 Using raw sequencing data which was then processed using bash tools such as bwa for sequence aligned and bcftools for variant calling. The file generated variant call format (VCF) files contain the SNP data. Next, to parse the VCF files, custom bash scripts were used to ensure the data was clean and ready for analysis. 
 Using R, the cleaned data was imported and analysed to investigate the SNP distributions by sample and genomic location. These analyses included summarizing SNP counts, visualizing SNP distributions by gene, and looking at the relationship between gene length and SNP count. Figures including histograms, scatter plots and summary tables were made using the data to support these observations. 
+
+The use of hamsters and ferrets in research offers distinct advantages. Hamsters are known for their suitability as models for studying respiratory viruses due to their similarity to humans in terms of airway structure and immune response. Ferrets are considered gold-standard models for influenza and other respiratory infections because of their susceptibility to human respiratory viruses and their similarities in disease progression. Using these non-model organisms provides a good framework for studying viral behavior, host-pathogen interactions, and therapeutics. 
+
 The primary findings revealed that SNP counts varied a lot across genes, with the longer genes like ORF1ab and S having the highest SNP counts. This leads to possible correlations between gene length and SNP count. These observations are in line with the incredible genomic variation within SARS-CoV-2 and allow us to question why these specific genes might be so easily mutated. 
+
 This project combined sequence processing pipelines with statistical analysis to create an overview of SNP dynamics in the SARS-CoV-2 genome in non-model organisms. 
 
 # Methods

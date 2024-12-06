@@ -40,24 +40,27 @@ The primary findings revealed that SNP counts varied a lot across genes, with th
 This project combined sequence processing pipelines with statistical analysis to create an overview of SNP dynamics in the SARS-CoV-2 genome in non-model organisms. 
 
 # Methods
+##Data Acquisition and Preprocessing
+To investigate the genomic features of SARS-CoV-2, raw sequencing data was acquired from the following publicly available dataset: “SARS-CoV-2 Sequencing from experimentally infected hamsters and ferrets”(PRJNA894555), including VCF files for variant analysis. The metadata and sequence files were retrieved from the NCBI Sequence Read Archive (SRA) using the fasterq-dump command in the SRA toolkit. The downloaded sequence reads were quality-checked using FastQC and trimmed for adapter sequences using Trimmomatic (Bolger et al., 2014).
 
-See the set of tutorials on the [vcfR package website](https://knausb.github.io/vcfR_documentation/index.html).
+##Sequence Alignment and Variant Calling
+The trimmed reads were aligned to the SARS-CoV-2 reference genome (GenBank ID: NC_045512.2) using bwa mem (Li and Durbin, 2009). The resulting SAM files were converted to BAM format, sorted, and indexed using samtools (Li et al., 2009). Variant calling was performed with bcftools mpileup and bcftools call to generate VCF files containing SNP information. Default parameters were used unless otherwise noted. Stringent filtering criteria were applied to ensure the reliability of the identified variants.
 
-You may also want to use any of a range of different COVID data packages and data sources:
+##Annotation and Data Cleaning
+The VCF files were parsed and annotated using custom bash scripts and vcfR in R (Knaus and Grünwald, 2017). Additional annotations, such as gene names, positions, and functional consequences, were added using the SARS-CoV-2 genome annotation file in GFF format. The annotated data were saved in tabular format for downstream analyses.
 
-* https://kjhealy.github.io/covdata/
-* https://github.com/como-ph/oxcovid19
-* https://ropensci.org/blog/2020/10/20/searching-medrxivr-and-biorxiv-preprint-data/
-* https://covidtracking.com/data/api
-  * `readr::read_csv("https://api.covidtracking.com/v1/states/daily.csv")`
+##Exploratory Data Analysis in R
+Cleaned SNP data and associated metadata were analyzed in R. Key analyses included:
+SNP Frequency Analysis: SNP counts per gene and per sample were summarized using dplyr and visualized with ggplot2. Distributions of SNP frequencies were explored to identify patterns across genes and samples.
+Gene Length Correlation: Gene lengths were calculated from the genomic coordinates provided in the annotation file. SNP counts were correlated with gene lengths using scatterplots and Pearson correlation coefficients.
+Visualization: Histograms, bar plots, and scatterplots were generated to highlight key findings. Custom color schemes and themes were applied using ggthemes.
 
-## Sequencing Data Analysis
-Sequencing data were processed using `bwa` for alignment and `bcftools` for variant calling. The resulting VCF files were analyzed for variant frequencies and annotated with metadata.
+##Pipeline Validation
+All bash scripts used in the preprocessing and alignment steps were rigorously tested using shellcheck to ensure robustness and accuracy. All R scripts and RMarkdown files were run through lintr to verify they were following best coding practices. The RMarkdown report successfully knitted into HTML format, providing a comprehensive overview of the analyses performed.
 
-## Tabular Data Analysis
-The `SraRunTable.csv` was analyzed in R to summarize sample metadata and investigate patterns by region and sequencing platform.
+##Reproducibility
+The project repository contains all scripts used in this analysis, with detailed comments explaining each step. Each script is appropriately named and organized within directories to facilitate reproducibility. Instructions for running the pipeline are provided in the README file included in the repository.
 
-All analyses were conducted using R scripts integrated into this RMarkdown file, ensuring reproducibility.
 
 # Results and Discussion
 

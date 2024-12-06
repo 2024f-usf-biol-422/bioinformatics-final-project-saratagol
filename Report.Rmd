@@ -181,8 +181,8 @@ vcf_with_metadata %>%
     values = c(
       "ferret" = "purple",
       "Roborovski dwarf hamster" = "orange"
-      )
-) +
+    )
+  ) +
   theme_minimal()
 ```
 

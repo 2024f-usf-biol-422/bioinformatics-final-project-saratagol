@@ -106,7 +106,7 @@ sra_data <- sra_data %>%
       TRUE ~ "Other"
     ),
     viral_load = abs(rnorm(nrow(sra_data), mean = 1e5, sd = 2e4))
-# Simulate viral load for demonstration
+    # Simulate viral load for demonstration
   )
 
 # Check data
@@ -165,9 +165,9 @@ vcf_with_metadata %>%
 ```{r ferret-hamster-sample-count, fig.cap = "Figure 3: Roborovski dwarf /hamster has more SNPs than ferret."}
 vcf_with_metadata %>%
   filter(
-  !is.na(lab_host) &
-  lab_host %in% c("ferret", "Roborovski dwarf hamster")
-) %>%
+    !is.na(lab_host) &
+      lab_host %in% c("ferret", "Roborovski dwarf hamster")
+    ) %>%
   group_by(lab_host) %>%
   summarize(snp_count = n()) %>%
   ggplot(aes(x = lab_host, y = snp_count, fill = lab_host)) +
@@ -178,7 +178,7 @@ vcf_with_metadata %>%
     y = "Number of SNPs"
   ) +
   scale_fill_manual(
-  values = c(
+    values = c(
     "ferret" = "purple",
     "Roborovski dwarf hamster" = "orange"
   )

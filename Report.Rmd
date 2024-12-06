@@ -28,13 +28,11 @@ library(tidyr)
 
 # Background and Overview
 
-This is a report on SARS-CoV-2, including some variant analysis [@koyama2020variant].
-This report focuses on the analysis of SARS-CoV-2 sequencing data alongside tabular data, including a variant analysis and data summary. The primary goal is to investigate patterns in viral variants and correlate them with metadata such as species. The goal of this project was to observe differences in SNPs in two different organisms and to break down SNP data by gene. 
-
-Key objectives include:
-1. Summarizing sequencing quality.
-2. Identifying frequent variants in the VCF files.
-3. Correlating variant frequency with metadata from the `SraRunTable`.
+This is a report on SARS-CoV-2, including some variant analysis [@koyama2020variant].The primary goals of this analysis were to assess the genomic features and single nucleotide polymorphism (SNP) distribution within the SARS-CoV-2 genome using a combination of biostatistical tools. By using bash script for sequence processing and R for data analysis and visualization, this study aimed to identify patterns in SNP distribution and frequency, as well as their association with gene lengths across the viral genome in two non-model organisms. 
+Using raw sequencing data which was then processed using bash tools such as bwa for sequence aligned and bcftools for variant calling. The file generated variant call format (VCF) files contain the SNP data. Next, to parse the VCF files, custom bash scripts were used to ensure the data was clean and ready for analysis. 
+Using R, the cleaned data was imported and analysed to investigate the SNP distributions by sample and genomic location. These analyses included summarizing SNP counts, visualizing SNP distributions by gene, and looking at the relationship between gene length and SNP count. Figures including histograms, scatter plots and summary tables were made using the data to support these observations. 
+The primary findings revealed that SNP counts varied a lot across genes, with the longer genes like ORF1ab and S having the highest SNP counts. This leads to possible correlations between gene length and SNP count. These observations are in line with the incredible genomic variation within SARS-CoV-2 and allow us to question why these specific genes might be so easily mutated. 
+This project combined sequence processing pipelines with statistical analysis to create an overview of SNP dynamics in the SARS-CoV-2 genome in non-model organisms. 
 
 # Methods
 
@@ -114,7 +112,7 @@ vcf_with_metadata <-
 
 # Figures
 
-```{r unique SNP locations, fig.cap="Unique SNP Locations"}
+```{r unique SNP locations, fig.cap="Figure 1: ORF1ab and S genes have more unique SNPs in the set of samples analyzed."}
 # create a plot of unique SNP locations within each gene across all samples
 vcf_with_metadata %>%
   filter(!is.na(gene)) %>% # get rid of SNPs not in gene regions
@@ -129,10 +127,10 @@ vcf_with_metadata %>%
        x = "Gene Name") +
   theme_few() # get rid of the grey background
 ```
-**Figure 1**: ORF1ab and S genes have more unique SNPs in the set of samples analyzed.
 
 
-```{r snp-distribution-genome, fig.cap="Distribution of SNPs Across the Genome"}
+
+```{r snp-distribution-genome, fig.cap="Figure 2: Most SNPs occur between 20,000 and 25,000 bp."}
 vcf_with_metadata %>%
   ggplot(aes(x = pos)) +
   geom_histogram(binwidth = 1000, fill = "orange", color = "black") +
@@ -141,9 +139,8 @@ vcf_with_metadata %>%
        y = "Frequency of SNPs") +
   theme_minimal()
 ```
-**Figure 2**: Most SNPs occur between 20,000 and 25,000 bp. 
 
-```{r ferret-hamster-sample-count, fig.cap="Sample Count for Ferrets vs Hamsters"}
+```{r ferret-hamster-sample-count, fig.cap="Figure 3: Roborovski dwarf hamster has more SNPs than ferret."}
 vcf_with_metadata %>%
   filter(!is.na(lab_host) & lab_host %in% c("ferret", "Roborovski dwarf hamster")) %>%
   group_by(lab_host) %>%
@@ -158,9 +155,8 @@ vcf_with_metadata %>%
   scale_fill_manual(values = c("ferret" = "purple", "Roborovski dwarf hamster" = "orange")) +
   theme_minimal()
 ```
-**Figure 3**: Roborovski dwarf hamster has more SNPs than ferret. 
 
-```{r snp-counts-sample, fig.cap="SNP Counts Per Sample"}
+```{r snp-counts-sample, fig.cap="Figure 4: There is a variety in number of SNPs per sample."}
 vcf_with_metadata %>%
   group_by(sample) %>%
   summarize(snp_count = n()) %>%
@@ -174,10 +170,8 @@ vcf_with_metadata %>%
         axis.ticks.x = element_blank()) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
 ```
-**Figure 4**: There is a variety in number of SNPs per sample. 
 
-
-```{r gene-length-distribution, fig.cap="Gene length distribution in SARS-CoV-2 genome"}
+```{r gene-length-distribution, fig.cap="Figure 5: ORF1ab and S genes are much larger in length than the other genes."}
 # create a plot of gene length distribution 
 gene_table %>%
   mutate(length = end - start) %>%
@@ -187,9 +181,8 @@ gene_table %>%
        x = "Gene Length (bp)", y = "Frequency") +
   theme_minimal()
 ```
-**Figure 5**: ORF1ab and S genes are much larger in legth than the other genes. 
 
-```{r snp-gene-length-correlation, fig.cap="Correlation between SNP counts and gene length"}
+```{r snp-gene-length-correlation, fig.cap="Figure 6: Another way to demonstrate ORF1ab and S genes are larger genes and therfore are more likely to have SNPs."}
 # create a plot of correlation Between SNP Counts and Gene Length
 gene_table_with_snps <- vcf_with_metadata %>%
   filter(!is.na(gene)) %>%
@@ -204,7 +197,6 @@ ggplot(gene_table_with_snps, aes(x = length, y = snp_count)) +
        x = "Gene Length (bp)", y = "Number of SNPs") +
   theme_minimal()
 ```
-**Figure 6**: Another way to demonstrate ORF1ab and S genes are larger genes and therfore are more likely to have SNPs. 
 
 # Tables
 

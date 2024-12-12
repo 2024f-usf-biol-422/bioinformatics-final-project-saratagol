@@ -5,7 +5,6 @@ author: "Sara Tagol"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document: default
-  pdf_document: default
 csl: bioinformatics.csl
 bibliography: references.bib
 params:
